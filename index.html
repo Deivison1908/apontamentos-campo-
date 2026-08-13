@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Farol de Apontamento no Campo</title>
+
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#14181d" />
+
+<!-- iOS home screen support -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Farol Campo" />
+<link rel="apple-touch-icon" href="./icon-180.png" />
+<link rel="icon" href="./icon-192.png" />
+
+<style>
+  html, body { margin:0; padding:0; background:#14181d; height:100%; }
+  #root { min-height:100vh; }
+  .boot-loading {
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:10px; background:#14181d; color:#93a0ac;
+    font-family:system-ui,sans-serif; font-size:14px;
+  }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="boot-loading" id="boot-loading">Carregando app…</div>
+</div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js" crossorigin></script>
+<script src="https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js" crossorigin></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js" crossorigin></script>
+<script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js" crossorigin></script>
+
+<script>
+  // window.storage shim — mirrors the async key/value API, backed by localStorage.
+  // Data is namespaced per browser/device and persists across sessions.
+  (function () {
+    var NS = "apontamentos_campo::";
+    window.storage = {
+      get: function (key) {
+        return new Promise(function (resolve) {
+          try {
+            var raw = window.localStorage.getItem(NS + key);
+            resolve(raw === null ? null : { key: key, value: raw, shared: false });
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      },
+      set: function (key, value) {
+        return new Promise(function (resolve, reject) {
+          try {
+            window.localStorage.setItem(NS + key, value);
+            resolve({ key: key, value: value, shared: false });
+          } catch (e) {
+            reject(e);
+          }
+        });
+      },
+      delete: function (key) {
+        return new Promise(function (resolve) {
+          try {
+            window.localStorage.removeItem(NS + key);
+            resolve({ key: key, deleted: true, shared: false });
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      },
+      list: function (prefix) {
+        return new Promise(function (resolve) {
+          try {
+            var keys = [];
+            for (var i = 0; i < window.localStorage.length; i++) {
+              var k = window.localStorage.key(i);
+              if (k && k.indexOf(NS) === 0) {
+                var short = k.slice(NS.length);
+                if (!prefix || short.indexOf(prefix) === 0) keys.push(short);
+              }
+            }
+            resolve({ keys: keys, prefix: prefix, shared: false });
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      },
+    };
+  })();
+</script>
+
+<script src="./app.js"></script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js").catch(function () {});
+    });
+  }
+</script>
+</body>
+</html>
